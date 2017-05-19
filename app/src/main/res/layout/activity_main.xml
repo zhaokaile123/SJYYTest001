@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    tools:context="atguigu.com.sjyytest001.MainActivity">
+    
+    <include layout="@layout/title"/>  //抽取出去
+
+
+    <FrameLayout
+        android:id="@+id/fl_content"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+    </FrameLayout>
+
+    <RadioGroup
+        android:id="@+id/rg_main"
+        android:background="#44000000"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/local_video"
+            android:text="本地视频"
+            android:drawableTop="@drawable/select_loaclvideo"
+
+            style="@style/bottom_style"
+            />
+        <RadioButton
+            android:id="@+id/local_music"
+            android:text="本地音乐"
+            android:drawableTop="@drawable/select_loaclmusic"
+
+            style="@style/bottom_style"
+            />
+        <RadioButton
+            android:id="@+id/net_music"
+            android:text="网络音乐"
+            android:drawableTop="@drawable/select_netmusic"
+
+            style="@style/bottom_style"
+            />
+
+        <RadioButton
+            android:id="@+id/net_video"
+            android:text="网络视频"
+            android:drawableTop="@drawable/select_loaclvideo"
+
+            style="@style/bottom_style"
+            />
+
+    </RadioGroup>
+</LinearLayout>
