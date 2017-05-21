@@ -1,17 +1,19 @@
 package atguigu.com.sjyytest001.domain;
 
+import java.io.Serializable;
+
 /**
  * Created by ASUS on 2017/5/19.
  */
 
-public class LocalVideoInfo {
+public class LocalVideoInfo implements Serializable{
 
     private String name ;
     private long duration;
     private long size;
-    private String data;
+    private String data;  // uri
 
-    public LocalVideoInfo(String name, long size, long duration, String data) {
+    public LocalVideoInfo(String name, long duration,long size, String data) {
         this.name = name;
         this.size = size;
         this.duration = duration;

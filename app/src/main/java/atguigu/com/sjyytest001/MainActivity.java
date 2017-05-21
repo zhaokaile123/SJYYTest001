@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
         //把各个Fragment 添加到 结合中
         initFragment();
 
+
+
         rg_main.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -86,6 +88,5 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
 
 }
