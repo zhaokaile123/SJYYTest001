@@ -141,11 +141,11 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             }
         });
 
-        // 播放出错的时候调用
+        // 播放出错的时候调用  可以设置万能播放器
         vv.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-               // startVitamioPlayer();
+                startVitamioPlayer();
                 return false;
             }
         });
@@ -193,7 +193,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
-   /* private void startVitamioPlayer() {
+    private void startVitamioPlayer() {
         if(vv != null){
             vv.stopPlayback();
         }
@@ -209,7 +209,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
         startActivity(intent);
         finish();//关闭系统播放器
-    }*/
+    }
 
     //  更新音量进度条
     private void updateVoiceProgress(int progress) {

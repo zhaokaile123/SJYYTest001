@@ -36,6 +36,7 @@
             android:screenOrientation="landscape" />
         <activity
             android:name=".activity.PlayerActivity"
+            android:screenOrientation="landscape"
             android:label="@string/player_name"
             android:theme="@style/playerStyle">
             <intent-filter>
@@ -286,6 +287,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".activity.VitamioVideoPlayerActivity"
+            android:screenOrientation="landscape"
+            android:label="@string/player_name"
+            android:theme="@style/playerStyle"> </activity>
     </application>
 
 </manifest>
