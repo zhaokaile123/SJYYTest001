@@ -38,7 +38,7 @@
             android:name=".activity.PlayerActivity"
             android:screenOrientation="landscape"
             android:label="@string/player_name"
-            android:theme="@style/playerStyle">
+            android:theme="@style/noAnimation_Theme">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -289,8 +289,8 @@
 
         <activity android:name=".activity.VitamioVideoPlayerActivity"
             android:screenOrientation="landscape"
-            android:label="@string/player_name"
-            android:theme="@style/playerStyle"> </activity>
+            android:launchMode="singleTask"
+            android:theme="@style/noAnimation_Theme"> </activity>   //修改activity跳转的样式
     </application>
 
 </manifest>

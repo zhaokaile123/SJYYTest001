@@ -1,7 +1,9 @@
 package atguigu.com.sjyytest001.activity;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
@@ -575,10 +577,13 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     @Override  // 最下面五个控件  加 声音 左右两个控件的 点击事件
     public void onClick(View v) {
         if ( v == btnVoice ) {  //点击声音
+
             isMute = !isMute;
             updateVoice();  //设置声音
 
         } else if ( v == btnSwitchPlayer ) {
+            //切换 播放器
+            switchPlayer();
 
         } else if ( v == btnExit ) {  //点击退出
             finish();
@@ -603,6 +608,22 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         handler.removeCallbacksAndMessages(null);   //触发点击事件的时候   就移除所有消息   避免与 单击（隐藏显示控制栏） 冲突；
         handler.sendEmptyMessageDelayed(HIDE,3000); //重新发送
     }
+
+    //切换播放器
+    private void switchPlayer(){
+        new AlertDialog.Builder(this)
+                    .setTitle("切换播放器")
+                    .setMessage("是否需要切换服务器？")
+                    .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                             startVitamioPlayer();
+                        }
+                    })
+                    .setNegativeButton("取消", null)
+                    .show();
+    }
+
     //设置音量
     private void updateVoice() {
         if(isMute) {  //如果是静音的话   把音量设置为0
@@ -667,19 +688,20 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     //监听系统按键的调节音量
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             currentVoice--;
             updateVoiceProgress(currentVoice);
             handler.removeMessages(HIDE);
-            handler.sendEmptyMessageDelayed(HIDE,3000);
+            handler.sendEmptyMessageDelayed(HIDE, 4000);
             return true;
-        }else{
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             currentVoice++;
             updateVoiceProgress(currentVoice);
             handler.removeMessages(HIDE);
-            handler.sendEmptyMessageDelayed(HIDE,3000);
+            handler.sendEmptyMessageDelayed(HIDE, 4000);
             return true;
         }
+        return super.onKeyDown(keyCode, event);
     }
     @Override
     protected void onDestroy() {
