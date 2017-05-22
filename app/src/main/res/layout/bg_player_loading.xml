@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_system_video_player"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
-    android:gravity="center">
+    android:gravity="center"
+   tools:context=".activity.PlayerActivity">
 
-    <atguigu.com.sjyytest001.view.VideoView
+    <com.atguigu.mobileplayer0224.view.VitamioVideoView
         android:id="@+id/vv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -33,8 +35,8 @@
             android:text="正在加载中....15kb/s"
             android:textColor="#ffffff" />
 
-    </LinearLayout>
 
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/ll_buffering"
@@ -46,8 +48,8 @@
         android:visibility="gone">
 
         <ProgressBar
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
         <TextView
             android:id="@+id/tv_net_speed"
@@ -55,7 +57,6 @@
             android:layout_height="wrap_content"
             android:text="正在缓冲....15kb/s"
             android:textColor="#ffffff" />
-
     </LinearLayout>
 
 </RelativeLayout>

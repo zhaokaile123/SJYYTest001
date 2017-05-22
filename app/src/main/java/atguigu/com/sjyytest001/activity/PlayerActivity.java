@@ -13,6 +13,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -73,7 +74,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     private int maxVoice;
     private AudioManager am;  // 这是音频的一个类
     private boolean isMute = false; //是否静音
-    private MotionEvent event;
+    private boolean isNetUri = true;
+
+    private LinearLayout ll_loading;
+    private LinearLayout ll_buffering;
+    private TextView tv_loading_net_speed;
+    private TextView tv_net_speed;
 
 
     @Override
@@ -94,6 +100,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         setVideoType(NORMAL); //设置播放地址为默认
 
 
+
+
         //播放 准备工作  完毕 时 调用
         vv.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -110,8 +118,16 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 vv.start();
 
                 handler.sendEmptyMessage(PROGRESS); // 统一发消息，让handler 持续更新
-
+                ll_loading.setVisibility(View.GONE);//  让加载的页面隐藏
                 hideMediaController(); // 让控制面板一进来的时候隐藏
+
+                //准备完成的时候  设置下视频拖动完成的土司  可能以后用的到
+                mp.setOnSeekCompleteListener(new MediaPlayer.OnSeekCompleteListener() {
+                    @Override
+                    public void onSeekComplete(MediaPlayer mp) {
+                        Toast.makeText(PlayerActivity.this, "拖动完成了", Toast.LENGTH_SHORT).show();
+                    }
+                });
             }
         });
 
@@ -124,10 +140,12 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 finish();
             }
         });
+
         // 播放出错的时候调用
         vv.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
+               // startVitamioPlayer();
                 return false;
             }
         });
@@ -175,17 +193,35 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
     }
 
+   /* private void startVitamioPlayer() {
+        if(vv != null){
+            vv.stopPlayback();
+        }
+        Intent intent = new Intent(this, VitamioVideoPlayerActivity.class);
+        if(videoInfos != null && videoInfos.size() >0){
+            Bundle bunlder = new Bundle();
+            bunlder.putSerializable("videolist",videoInfos);
+            intent.putExtra("position",position);
+            //放入Bundler
+            intent.putExtras(bunlder);
+        }else if(uri != null){
+            intent.setData(uri);
+        }
+        startActivity(intent);
+        finish();//关闭系统播放器
+    }*/
+
     //  更新音量进度条
     private void updateVoiceProgress(int progress) {
         currentVoice = progress;
         am.setStreamVolume(AudioManager.STREAM_MUSIC,currentVoice,0);
         seekbarVoice.setProgress(currentVoice);
 
-     /*   if(currentVoice <=0){
+        if(currentVoice <=0){
             isMute = true;
         }else {
             isMute = false;
-        }*/
+        }
 
     }
 
@@ -253,19 +289,15 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
                 }
 
                 break;
-
             case MotionEvent.ACTION_UP:
                 handler.sendEmptyMessageDelayed(HIDE,3000);
                 break;
-
         }
-
         return true;
     }
 
     //设置开始或者暂停
     private void setStartOrPause() {
-
         if(vv.isPlaying()){  //如果正在播放的话
             //暂停
             vv.pause();
@@ -285,12 +317,16 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
 
             LocalVideoInfo videoInfo = videoInfos.get(position);
             tvName.setText(videoInfo.getName());
-
             vv.setVideoPath(videoInfo.getData());
+
+            isNetUri = utils.isNetUri(videoInfo.getData());   //  判断是否为网络连接可以放在Utils 类中
+                                                                //返回的是boolean类型的
+                                                                //然后再handler中更新
 
         }else if(uri != null){   //如果有视频，但不是列表，而是只有一个的话，那就不是得到视频列表路径
                                   //而是得到单独的一条uri
-             vv.setVideoURI(uri);
+            vv.setVideoURI(uri);
+            isNetUri = utils.isNetUri(uri.toString());
         }
         setButtonStatus();
     }
@@ -300,15 +336,19 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         position = getIntent().getIntExtra("position",0);
 
     }
-
     //播放下一个
     public void setNextVideo() {
+
         position++;
         if(position < videoInfos.size()) {
 
             LocalVideoInfo localVideoInfo = videoInfos.get(position);
+            isNetUri = utils.isNetUri(localVideoInfo.getData());
+            ll_loading.setVisibility(View.VISIBLE);
+
             vv.setVideoPath(localVideoInfo.getData());
             tvName.setText(localVideoInfo.getName());
+
 
             setButtonStatus();  //设置按钮状态
 
@@ -429,15 +469,49 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    private int preCurrentPosition ;
+    private final int SHOW_NET_SPEED = 2;  //显示网速
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
              switch (msg.what){
+                 case SHOW_NET_SPEED:
+                     if(isNetUri) {
+                         String netSpeed = utils.getNetSpeed(PlayerActivity.this);
+                         tv_loading_net_speed.setText(netSpeed);
+                         tv_net_speed.setText(netSpeed);
+                     }
+                     sendEmptyMessageDelayed(SHOW_NET_SPEED,1000); //如果卡就一直显示网速
+                     break;
+
                  case PROGRESS:
                      int currentPosition = vv.getCurrentPosition();// 得到实时进度
                      seekbarVideo.setProgress(currentPosition);  //让进度条更新
                      tvCurrentTime.setText(utils.stringForTime(currentPosition));//文本更新播放的时长
                      tvSystemTime.setText(getSystemTime()); //设置系统时间
+                     // /设置视频缓存效果
+
+                     if(isNetUri){  //如果是网络的  就缓存下
+                         int bufferPercentage = vv.getBufferPercentage();//0~100;
+                         int totalBuffer = bufferPercentage*seekbarVideo.getMax();
+                         int secondaryProgress =totalBuffer/100;
+                         seekbarVideo.setSecondaryProgress(secondaryProgress);
+                     }else{   //  不是网络的话 ，就设置缓存条为0；
+                         seekbarVideo.setSecondaryProgress(0);
+                     }
+             //设置视频卡顿时候的效果
+                     if(isNetUri && vv.isPlaying()) {
+                         int duration = currentPosition - preCurrentPosition;
+                         if(duration < 500) {
+                             //卡
+                             ll_buffering.setVisibility(View.VISIBLE);
+                         }else{
+                             //不卡
+                             ll_buffering.setVisibility(View.GONE);
+                         }
+                         preCurrentPosition = currentPosition;
+                     }
+
                      sendEmptyMessageDelayed(PROGRESS,1000);  //循环发送
                      break;
                  case HIDE:
@@ -475,6 +549,10 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         btnSwitchScreen = (Button)findViewById( R.id.btn_switch_screen );
         utils = new Utils();
         vv = (VideoView)findViewById(R.id.vv);
+        ll_buffering = (LinearLayout)findViewById(R.id.ll_buffering);
+        tv_net_speed = (TextView)findViewById(R.id.tv_net_speed);
+        ll_loading = (LinearLayout)findViewById(R.id.ll_loading);
+        tv_loading_net_speed = (TextView)findViewById(R.id.tv_loading_net_speed);
 
 
         btnVoice.setOnClickListener( this );
@@ -489,6 +567,8 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         currentVoice = am.getStreamVolume(AudioManager.STREAM_MUSIC);
         maxVoice = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
 
+        //初始化完成的时候加载网速
+        handler.sendEmptyMessage(SHOW_NET_SPEED);
 
     }
 
@@ -504,12 +584,14 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             finish();
         } else if ( v == btnPre ) {   //点击上一个
             setProVideo();
+            btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
         } else if ( v == btnStartPause ) {  //暂停 播放 按钮的点击
 
             setStartOrPause();
 
         } else if ( v == btnNext ) {
             setNextVideo();
+            btnStartPause.setBackgroundResource(R.drawable.btn_pause_selector);
         } else if ( v == btnSwitchScreen ) {  //点击全屏按钮的时候
 
             if(isFullScreen) {   //点击的时候  如果是全屏
@@ -520,9 +602,7 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
         }
         handler.removeCallbacksAndMessages(null);   //触发点击事件的时候   就移除所有消息   避免与 单击（隐藏显示控制栏） 冲突；
         handler.sendEmptyMessageDelayed(HIDE,3000); //重新发送
-
     }
-
     //设置音量
     private void updateVoice() {
         if(isMute) {  //如果是静音的话   把音量设置为0
@@ -533,7 +613,6 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
           seekbarVoice.setProgress(currentVoice);
         }
     }
-
     //设置屏幕类型
     private void setVideoType(int videoType) {
         switch (videoType){
@@ -570,20 +649,38 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     //设置播放前一个
-    private void setProVideo() {
+    private void
+    setProVideo() {
         position--;
         if(position >= 0) {
             LocalVideoInfo localVideoInfo = videoInfos.get(position);
+
+            isNetUri = utils.isNetUri(localVideoInfo.getData());
+            ll_loading.setVisibility(View.VISIBLE);
+
             vv.setVideoPath(localVideoInfo.getData());
             tvName.setText(localVideoInfo.getName());
 
             setButtonStatus();  //设置按钮状态
-
         }
     }
-
-
-
+    //监听系统按键的调节音量
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            currentVoice--;
+            updateVoiceProgress(currentVoice);
+            handler.removeMessages(HIDE);
+            handler.sendEmptyMessageDelayed(HIDE,3000);
+            return true;
+        }else{
+            currentVoice++;
+            updateVoiceProgress(currentVoice);
+            handler.removeMessages(HIDE);
+            handler.sendEmptyMessageDelayed(HIDE,3000);
+            return true;
+        }
+    }
     @Override
     protected void onDestroy() {
 
@@ -592,14 +689,11 @@ public class PlayerActivity extends AppCompatActivity implements View.OnClickLis
             handler.removeCallbacksAndMessages(null);
             handler = null;
         }
-
         //取消注册
         if(recevier != null){
             unregisterReceiver(recevier);
             recevier = null;
         }
-
         super.onDestroy();
     }
-
 }
